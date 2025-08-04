@@ -1,0 +1,17 @@
+{
+  "dependencies": {
+    "discord.js": "^14.21.0",
+    "dotenv": "^17.2.1"
+  },
+  "name": "discordbot",
+  "version": "1.0.0",
+  "description": "",
+  "main": "main.js",
+  "type": "module",
+  "scripts": {
+    "start": "nodemon main.js",
+    "deploy": "node command.js"
+  },
+  "author": "",
+  "license": "ISC"
+}
