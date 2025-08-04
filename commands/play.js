@@ -1,10 +1,14 @@
-/* const { joinVoiceChannel, createAudioPlayer, createAudioResource, AudioPlayerStatus } = require('@discordjs/voice');
+const { createAudioPlayer } = require('@discordjs/voice');
 const ytdl = require('ytdl-core');
+const { getAudioStream } = require('./stream/stream');
+const { createAudio } = require('./stream/resource');
+const { createVoiceConnection } = require('./stream/connection');
+const { registerPlayerEvents } = require('./stream/streamEvent');
 
 module.exports = {
-  name: 'play', // 이건 내부 확인용 (optional)
+  name: 'play',
   async execute(message) {
-    const url = message.content.slice(6).trim(); // '!play ' 제거
+    const url = message.content.slice(6).trim();
     const voiceChannel = message.member.voice.channel;
 
     if (!voiceChannel) {
@@ -22,35 +26,15 @@ module.exports = {
         return loadingMsg.edit('유효한 YouTube URL을 입력해주세요.');
       }
 
-      const stream = ytdl(url, { 
-        highWaterMark: 1 << 25,
-        filter: 'audioonly',
-        liveBuffer: 4900,
-        quality: 'highestaudio'
-      });
-
-      const connection = joinVoiceChannel({
-        channelId: voiceChannel.id,
-        guildId: message.guild.id,
-        adapterCreator: message.guild.voiceAdapterCreator,
-      });
-
+      const stream = getAudioStream(url);
+      const connection = createVoiceConnection(message);
       const player = createAudioPlayer();
-      const resource = createAudioResource(stream, { inlineVolume: true });
-      resource.volume.setVolume(0.5);
+      const resource = createAudio(stream);
 
       connection.subscribe(player);
       player.play(resource);
 
-      player.on(AudioPlayerStatus.Idle, () => {
-        if (connection.state.status !== 'destroyed') connection.destroy();
-      });
-
-      player.on('error', error => {
-        console.error('재생 에러:', error);
-        if (connection.state.status !== 'destroyed') connection.destroy();
-        message.channel.send('음악 재생 중 오류가 발생했습니다.');
-      });
+      registerPlayerEvents(player, connection, message);
 
       await loadingMsg.edit('🎵 재생을 시작합니다!');
     } catch (error) {
@@ -59,4 +43,3 @@ module.exports = {
     }
   }
 };
- */
